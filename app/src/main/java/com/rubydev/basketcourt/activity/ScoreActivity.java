@@ -1,12 +1,30 @@
-package com.rubydev.basketcourt;
+package com.rubydev.basketcourt.activity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.rubydev.basketcourt.R;
+import com.rubydev.basketcourt.api.Service;
+import com.rubydev.basketcourt.api.ServiceGenerator;
+import com.rubydev.basketcourt.model.ResMessage;
+import com.rubydev.basketcourt.model.Score;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ScoreActivity extends AppCompatActivity implements View.OnClickListener{
     String teamA, teamB;
@@ -15,7 +33,7 @@ public class ScoreActivity extends AppCompatActivity implements View.OnClickList
     Button btnAdd3A, btnMin3A, btnAdd2A, btnMin2A, btnAdd1A, btnMin1A;
     Button btnAdd3B, btnMin3B, btnAdd2B, btnMin2B, btnAdd1B, btnMin1B;
     int scoreA, scoreB;
-
+    ServiceGenerator generator = new ServiceGenerator();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,10 +141,60 @@ public class ScoreActivity extends AppCompatActivity implements View.OnClickList
                 scoreB =0;
                 break;
             case R.id.btnSave:
-                finish();
+//                finish();
+
+                SimpleDateFormat dateFormatter = new SimpleDateFormat("dd MMMM yyyy", Locale.US);
+                Date now = Calendar.getInstance().getTime();
+                String date = dateFormatter.format(now);
+
+                Score score = new Score(teamA, teamB,
+                        scoreA, scoreB,
+                        date,
+                        "1301142018");
+
+                saveData(score);
                 break;
         }
         tvScoreA.setText("" + scoreA);
         tvScoreB.setText("" + scoreB);
+    }
+
+    private void saveData(Score score) {
+
+        // Create a very simple REST adapter which points the API endpoint.
+        Service client =  generator.client;
+
+        // Fetch a list
+        Call<ResMessage> call = client.addScore(
+                score.getTeam_a(),
+                score.getTeam_b(),
+                score.getScore_a()+"",
+                score.getScore_b()+"",
+                score.getDate(),
+                score.getNim()
+        );
+
+        // Execute the call asynchronously. Get a positive or negative callback.
+        call.enqueue(new Callback<ResMessage>() {
+            @Override
+            public void onResponse(Call<ResMessage> call, Response<ResMessage> response) {
+                // The network call was a success and we got a response
+                ResMessage res = response.body();
+                if (res.getMessage().equals("success")) {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                }else {
+                    onFailure(call, new Throwable(res.getMessage()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResMessage> call, Throwable t) {
+                // the network call was a failure
+                Toast.makeText(getApplicationContext(),t.getMessage(),Toast.LENGTH_LONG).show();
+                Log.i("testingIrfan", "onFailure: "+t.getMessage());
+            }
+        });
     }
 }

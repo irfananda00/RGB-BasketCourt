@@ -1,4 +1,4 @@
-package com.rubydev.basketcourt;
+package com.rubydev.basketcourt.activity;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -6,6 +6,17 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import com.rubydev.basketcourt.R;
+import com.rubydev.basketcourt.api.Service;
+import com.rubydev.basketcourt.api.ServiceGenerator;
+import com.rubydev.basketcourt.model.ResMessage;
+import com.rubydev.basketcourt.model.Score;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class InputActivity extends AppCompatActivity {
     Button btnCreate;
